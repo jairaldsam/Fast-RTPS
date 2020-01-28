@@ -374,6 +374,11 @@ public:
         return m_network_Factory;
     }
 
+    inline bool has_shm_transport()
+    {
+        return has_shm_transport_;
+    }
+
     uint32_t get_min_network_send_buffer_size()
     {
         return m_network_Factory.get_min_send_buffer_size();
@@ -451,7 +456,7 @@ private:
     AsyncWriterThread async_thread_;
     //! Type cheking function
     std::function<bool(const std::string&)> type_check_fn_;
-
+    
 #if HAVE_SECURITY
     // Security manager
     security::SecurityManager m_security_manager;
@@ -547,6 +552,9 @@ private:
 #if HAVE_SECURITY
     security::ParticipantSecurityAttributes security_attributes_;
 #endif
+
+    //! Indicates wether the participant has shared-memory transport
+    bool has_shm_transport_;
 
     /**
      * Get persistence service from factory, using endpoint attributes (or participant
