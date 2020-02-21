@@ -25,6 +25,10 @@
 
 #include <fastdds/rtps/network/NetworkFactory.h>
 
+#include <rtps/transport/shared_mem/SHMLocator.hpp>
+
+using SHMLocator = eprosima::fastdds::rtps::SHMLocator;
+
 namespace eprosima {
 namespace fastrtps {
 namespace rtps {
@@ -364,12 +368,16 @@ bool WriterProxyData::writeToCDRMessage(
 bool WriterProxyData::readFromCDRMessage(
         CDRMessage_t* msg,
         const NetworkFactory& network,
-        bool is_shm_transport_possible)
+        bool is_shm_transport_available)
 {
     bool are_shm_default_locators_present = false;
+    bool is_shm_transport_possible = false;
 
-    auto param_process = [this, &network, &is_shm_transport_possible,
-        &are_shm_default_locators_present](const Parameter_t* param)
+    auto param_process = [this, &network, 
+        &is_shm_transport_available,
+        &is_shm_transport_possible,
+        &are_shm_default_locators_present]
+        (const Parameter_t* param)
             {
                 switch (param->Pid)
                 {
@@ -549,6 +557,11 @@ bool WriterProxyData::readFromCDRMessage(
                         Locator_t temp_locator;
                         if (network.transform_remote_locator(p->locator, temp_locator))
                         {
+                            if(is_shm_transport_available && !is_shm_transport_possible )
+                            {
+                                is_shm_transport_possible = SHMLocator::is_shm_and_from_this_host(temp_locator);
+                            }
+
                             if (is_shm_transport_possible)
                             {
                                 if (temp_locator.kind == LOCATOR_KIND_SHM)
@@ -585,6 +598,11 @@ bool WriterProxyData::readFromCDRMessage(
                         Locator_t temp_locator;
                         if (network.transform_remote_locator(p->locator, temp_locator))
                         {
+                            if(is_shm_transport_available && !is_shm_transport_possible )
+                            {
+                                is_shm_transport_possible = SHMLocator::is_shm_and_from_this_host(temp_locator);
+                            }
+
                             if (is_shm_transport_possible)
                             {
                                 if (temp_locator.kind == LOCATOR_KIND_SHM)
