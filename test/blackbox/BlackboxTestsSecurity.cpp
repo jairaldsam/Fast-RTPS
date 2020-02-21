@@ -297,8 +297,7 @@ TEST(BlackBox, BuiltinAuthenticationAndCryptoPlugin_besteffort_rtps_ok)
     reader.block_for_at_least(2);
 }
 
-// TODO(Adolfo): Enable when SHM & Security OK.
-/*TEST(BlackBox, BuiltinAuthenticationAndCryptoPlugin_shm_transport_ok)
+TEST(BlackBox, BuiltinAuthenticationAndCryptoPlugin_shm_transport_ok)
 {
     PubSubReader<HelloWorldType> reader(TEST_TOPIC_NAME);
     PubSubWriter<HelloWorldType> writer(TEST_TOPIC_NAME);
@@ -366,7 +365,7 @@ TEST(BlackBox, BuiltinAuthenticationAndCryptoPlugin_besteffort_rtps_ok)
     ASSERT_TRUE(data.empty());
     // Block reader until reception finished or timeout.
     reader.block_for_at_least(2);
-}*/
+}
 
 TEST(BlackBox, BuiltinAuthenticationAndCryptoPlugin_shm_udp_transport_ok)
 {
