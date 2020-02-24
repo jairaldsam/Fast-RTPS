@@ -76,6 +76,7 @@ extern const char* SEGMENT_OVERFLOW_POLICY;
 extern const char* HEALTHY_CHECK_TIMEOUT_MS;
 extern const char* DISCARD;
 extern const char* FAIL;
+extern const char* RTPS_DUMP_FILE;
 
 extern const char* QOS_PROFILE;
 extern const char* APPLICATION;
