@@ -21,11 +21,11 @@
 #include <fastdds/rtps/builtin/data/ParticipantProxyData.h>
 #include <fastdds/rtps/builtin/data/WriterProxyData.h>
 #include <fastdds/rtps/builtin/data/ReaderProxyData.h>
+#include <rtps/builtin/data/ProxyDataFilters.hpp>
 #include <fastdds/rtps/builtin/discovery/participant/PDPSimple.h>
 #include <fastdds/rtps/resources/TimedEvent.h>
 #include <fastdds/rtps/builtin/BuiltinProtocols.h>
 #include <fastdds/rtps/network/NetworkFactory.h>
-#include <rtps/transport/shared_mem/SHMLocator.hpp>
 #include <fastrtps/log/Log.h>
 #include <fastrtps/qos/QosPolicies.h>
 #include <fastrtps/utils/TimeConversion.h>
@@ -36,7 +36,6 @@
 #include <chrono>
 
 using namespace eprosima::fastrtps;
-using SHMLocator = eprosima::fastdds::rtps::SHMLocator;
 
 namespace eprosima {
 namespace fastrtps {
@@ -354,37 +353,13 @@ bool ParticipantProxyData::readFromCDRMessage(
                         Locator_t temp_locator;
                         if (network.transform_remote_locator(p->locator, temp_locator))
                         {
-                            if(is_shm_transport_available && !is_shm_transport_possible )
-                            {
-                                is_shm_transport_possible = SHMLocator::is_shm_and_from_this_host(temp_locator);
-                            }
-
-                            if (is_shm_transport_possible)
-                            {
-                                if (temp_locator.kind == LOCATOR_KIND_SHM)
-                                {
-                                    // First SHM locator
-                                    if (!are_shm_metatraffic_locators_present)
-                                    {
-                                        // Remove previously added locators from other transports
-                                        metatraffic_locators.unicast.clear();
-                                        metatraffic_locators.multicast.clear();
-                                        are_shm_metatraffic_locators_present = true;
-                                    }
-                                    metatraffic_locators.add_multicast_locator(temp_locator);
-                                }
-                                else if (!are_shm_metatraffic_locators_present)
-                                {
-                                    metatraffic_locators.add_multicast_locator(temp_locator);
-                                }
-                            }
-                            else
-                            {
-                                if (temp_locator.kind != LOCATOR_KIND_SHM)
-                                {
-                                    metatraffic_locators.add_multicast_locator(temp_locator);
-                                }
-                            }
+                            ProxyDataFilters::filter_locators(
+                                is_shm_transport_available,
+                                &is_shm_transport_possible,
+                                &are_shm_metatraffic_locators_present,
+                                &metatraffic_locators,
+                                temp_locator,
+                                false);
                         }
                         break;
                     }
@@ -395,37 +370,13 @@ bool ParticipantProxyData::readFromCDRMessage(
                         Locator_t temp_locator;
                         if (network.transform_remote_locator(p->locator, temp_locator))
                         {
-                            if(is_shm_transport_available && !is_shm_transport_possible )
-                            {
-                                is_shm_transport_possible = SHMLocator::is_shm_and_from_this_host(temp_locator);
-                            }
-
-                            if (is_shm_transport_possible)
-                            {
-                                if (temp_locator.kind == LOCATOR_KIND_SHM)
-                                {
-                                    // First SHM locator
-                                    if (!are_shm_metatraffic_locators_present)
-                                    {
-                                        // Remove previously added locators from other transports
-                                        metatraffic_locators.unicast.clear();
-                                        metatraffic_locators.multicast.clear();
-                                        are_shm_metatraffic_locators_present = true;
-                                    }
-                                    metatraffic_locators.add_unicast_locator(temp_locator);
-                                }
-                                else if (!are_shm_metatraffic_locators_present)
-                                {
-                                    metatraffic_locators.add_unicast_locator(temp_locator);
-                                }
-                            }
-                            else
-                            {
-                                if (temp_locator.kind != LOCATOR_KIND_SHM)
-                                {
-                                    metatraffic_locators.add_unicast_locator(temp_locator);
-                                }
-                            }
+                            ProxyDataFilters::filter_locators(
+                                is_shm_transport_available,
+                                &is_shm_transport_possible,
+                                &are_shm_metatraffic_locators_present,
+                                &metatraffic_locators,
+                                temp_locator,
+                                true);
                         }
                         break;
                     }
@@ -436,37 +387,13 @@ bool ParticipantProxyData::readFromCDRMessage(
                         Locator_t temp_locator;
                         if (network.transform_remote_locator(p->locator, temp_locator))
                         {
-                            if(is_shm_transport_available && !is_shm_transport_possible )
-                            {
-                                is_shm_transport_possible = SHMLocator::is_shm_and_from_this_host(temp_locator);
-                            }
-
-                            if (is_shm_transport_possible)
-                            {
-                                if (temp_locator.kind == LOCATOR_KIND_SHM)
-                                {
-                                    // First SHM locator
-                                    if (!are_shm_default_locators_present)
-                                    {
-                                        // Remove previously added locators from other transports
-                                        default_locators.unicast.clear();
-                                        default_locators.multicast.clear();
-                                        are_shm_default_locators_present = true;
-                                    }
-                                    default_locators.add_unicast_locator(temp_locator);
-                                }
-                                else if (!are_shm_default_locators_present)
-                                {
-                                    default_locators.add_unicast_locator(temp_locator);
-                                }
-                            }
-                            else
-                            {
-                                if (temp_locator.kind != LOCATOR_KIND_SHM)
-                                {
-                                    default_locators.add_unicast_locator(temp_locator);
-                                }
-                            }
+                            ProxyDataFilters::filter_locators(
+                                is_shm_transport_available,
+                                &is_shm_transport_possible,
+                                &are_shm_default_locators_present,
+                                &default_locators,
+                                temp_locator,
+                                true);
                         }
                         break;
                     }
@@ -477,37 +404,13 @@ bool ParticipantProxyData::readFromCDRMessage(
                         Locator_t temp_locator;
                         if (network.transform_remote_locator(p->locator, temp_locator))
                         {
-                            if(is_shm_transport_available && !is_shm_transport_possible )
-                            {
-                                is_shm_transport_possible = SHMLocator::is_shm_and_from_this_host(temp_locator);
-                            }
-
-                            if (is_shm_transport_possible)
-                            {
-                                if (temp_locator.kind == LOCATOR_KIND_SHM)
-                                {
-                                    // First SHM locator
-                                    if (!are_shm_default_locators_present)
-                                    {
-                                        // Remove previously added locators from other transports
-                                        default_locators.unicast.clear();
-                                        default_locators.multicast.clear();
-                                        are_shm_default_locators_present = true;
-                                    }
-                                    default_locators.add_multicast_locator(temp_locator);
-                                }
-                                else if (!are_shm_default_locators_present)
-                                {
-                                    default_locators.add_multicast_locator(temp_locator);
-                                }
-                            }
-                            else
-                            {
-                                if (temp_locator.kind != LOCATOR_KIND_SHM)
-                                {
-                                    default_locators.add_multicast_locator(temp_locator);
-                                }
-                            }
+                            ProxyDataFilters::filter_locators(
+                                is_shm_transport_available,
+                                &is_shm_transport_possible,
+                                &are_shm_default_locators_present,
+                                &default_locators,
+                                temp_locator,
+                                false);
                         }
                         break;
                     }
